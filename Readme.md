@@ -10,7 +10,7 @@ pip install pyzmq
 
 Una vez se cumple con ambos requisitos el sensor se puede ejecutar con:
 ```bash
-python Sensor.py [tipo] [intervalo] [configuracion]
+python Sensor.py [tipo] [intervalo] [configuracion] [puerto]
 ```
 
 Los 3 argumentos son obligatorios:
@@ -37,12 +37,14 @@ Los 3 argumentos son obligatorios:
 
     Respectivamente.
 
+* puerto. El numero de puerto donde va a correr el sensor
+
 ### Ejemplo de ejecucion
 ```bash
-python Sensor.py 1 5 sensconfig.txt
+python Sensor.py 1 5 sensconfig.txt 5556
 ```
 
-Este ejemplo ejecuta un sensor de PH que genera un nuevo valor cada 5 segundos y utiliza el archivo de configuracion sensconfig.txt ubicado en la raiz del proyecto.
+Este ejemplo ejecuta un sensor de PH en el puerto 5556 que genera un nuevo valor cada 5 segundos y utiliza el archivo de configuracion sensconfig.txt ubicado en la raiz del proyecto.
 
 Una vez ejecutado, el programa deberia responder
 ```bash
@@ -50,7 +52,7 @@ Sensor creado: tipo: PH, intervalo: 5 segundos, probabilidad de valor correcto: 
 ```
 Seguido de los valores generados de acuerdo con el intervalo
 
-## Ejecutar el Cliente
+## Ejecutar el Cliente de pruebas
 Para ejecutar el cliente se requieren las mismas dependencias que el servidor, sin embargo no requiere argumentos.
 
 ```bash
