@@ -1,12 +1,17 @@
-import sys
 import zmq
 
 context = zmq.Context()
 socket: zmq.Socket = context.socket(zmq.SUB)
 
-socket.connect("tcp://localhost:5556")
+direccion: str
+puerto: str
 
-socket.setsockopt_string(zmq.SUBSCRIBE, "")
+direccion = input("Ingrese la direccion del sensor ")
+puerto = input("Ingrese el puerto del sensor ")
+
+socket.connect(f"tcp://{direccion}:{puerto}")
+
+socket.setsockopt_string(zmq.SUBSCRIBE, "Temperatura=")
 
 while(True):
     valor = socket.recv_string()
