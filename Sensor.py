@@ -3,26 +3,9 @@ from time import sleep
 import zmq
 import random
 import threading
+import settings
 
 class Sensor:
-
-    class Colores:
-        CORRECTO = '\033[92m'
-        MAL_RANGO = '\033[93m'
-        ERROR = '\033[91m'
-        FIN = '\033[0m'
-
-    tipos_sensor = {
-        0: "Temperatura",
-        1: "PH",
-        2: "Oxigeno"
-    }
-
-    rangos_parametros_calidad = {
-        0: (68, 89) ,
-        1: (6.0, 8.0),
-        2: (2, 11)
-    }
 
     tipo_sensor: int
     tiempoT: int
@@ -35,7 +18,7 @@ class Sensor:
     running: bool
     prendido: bool
 
-    puerto: str
+    puerto: str 
 
     def __init__(self, tipo_sensor, tiempoT, archivo_conf, puerto) -> None:
         self.puerto = puerto
@@ -45,7 +28,7 @@ class Sensor:
         self.leerArchivoConf()
         self.prendido = True
         self.running = True
-        print(f"Sensor creado: tipo: {self.tipos_sensor.get(self.tipo_sensor)}, intervalo: {str(self.tiempoT)} segundos, probabilidad de valor correcto: {self.prob_correcto}, probabilidad de valor fuera de rango: {self.prob_no_rango}, probabilidad de error: {self.prob_error}")
+        print(f"Sensor creado: tipo: {settings.tipos_sensor.get(self.tipo_sensor)}, intervalo: {str(self.tiempoT)} segundos, probabilidad de valor correcto: {self.prob_correcto}, probabilidad de valor fuera de rango: {self.prob_no_rango}, probabilidad de error: {self.prob_error}")
         self.correr()
     
     def leerArchivoConf(self):
@@ -70,12 +53,12 @@ class Sensor:
                 prob_function = random.choices([self.producir_valor_valido, self.producir_valor_invalido, self.producir_error], weights=(self.prob_correcto*100, self.prob_no_rango*100, self.prob_error*100), k=1)[0]
                 valor = prob_function()
                 if prob_function == self.producir_valor_valido:
-                    print(f"{self.Colores.CORRECTO}{valor}{self.Colores.FIN}")
+                    print(f"{settings.Colores.CORRECTO}{valor}{settings.Colores.FIN}")
                 elif prob_function == self.producir_valor_invalido:
-                    print(f"{self.Colores.MAL_RANGO}{valor}{self.Colores.FIN}")
+                    print(f"{settings.Colores.MAL_RANGO}{valor}{settings.Colores.FIN}")
                 else:
-                    print(f"{self.Colores.ERROR}{valor}{self.Colores.FIN}")
-                socket.send_string(self.tipos_sensor.get(self.tipo_sensor) + "=" + str(valor))
+                    print(f"{settings.Colores.ERROR}{valor}{settings.Colores.FIN}")
+                socket.send_string(settings.tipos_sensor.get(self.tipo_sensor) + "=" + str(valor))
                 sleep(self.tiempoT)
         
     def options(self):
@@ -93,10 +76,10 @@ class Sensor:
 
     
     def producir_valor_valido(self):
-        return round(random.uniform(self.rangos_parametros_calidad.get(self.tipo_sensor)[0], self.rangos_parametros_calidad.get(self.tipo_sensor)[1]), 2)
+        return round(random.uniform(settings.rangos_parametros_calidad.get(self.tipo_sensor)[0], self.rangos_parametros_calidad.get(self.tipo_sensor)[1]), 2)
 
     def producir_valor_invalido(self):
-        return round(random.uniform(self.rangos_parametros_calidad.get(self.tipo_sensor)[1] + 1, 100), 2)
+        return round(random.uniform(settings.rangos_parametros_calidad.get(self.tipo_sensor)[1] + 1, 100), 2)
 
     def producir_error(self):
         return round(random.uniform(-100, -1), 2)
