@@ -4,6 +4,7 @@ import zmq
 import random
 import threading
 import settings
+import Routing as ro
 
 class Sensor:
 
@@ -18,10 +19,8 @@ class Sensor:
     running: bool
     prendido: bool
 
-    puerto: str 
 
-    def __init__(self, tipo_sensor, tiempoT, archivo_conf, puerto) -> None:
-        self.puerto = puerto
+    def __init__(self, tipo_sensor, tiempoT, archivo_conf) -> None:
         self.tipo_sensor = int(tipo_sensor)
         self.tiempoT = int(tiempoT)
         self.archivo_conf = archivo_conf
@@ -43,7 +42,8 @@ class Sensor:
     def correr(self):
         context = zmq.Context()
         socket: zmq.Socket = context.socket(zmq.PUB)
-        socket.bind(f"tcp://*:{self.puerto}")
+        socket.connect(f"tcp://{ro.PROXYDIR}:{ro.PROXYINPORT}")
+        print(f"Socket connected to tcp://{ro.PROXYDIR}:{ro.PROXYINPORT}")
 
         opciones = threading.Thread(target = self.options)
         opciones.start()
@@ -76,7 +76,7 @@ class Sensor:
 
     
     def producir_valor_valido(self):
-        return round(random.uniform(settings.rangos_parametros_calidad.get(self.tipo_sensor)[0], self.rangos_parametros_calidad.get(self.tipo_sensor)[1]), 2)
+        return round(random.uniform(settings.rangos_parametros_calidad.get(self.tipo_sensor)[0], settings.rangos_parametros_calidad.get(self.tipo_sensor)[1]), 2)
 
     def producir_valor_invalido(self):
         return round(random.uniform(settings.rangos_parametros_calidad.get(self.tipo_sensor)[1] + 1, 100), 2)
@@ -88,12 +88,11 @@ class Sensor:
 #Formato de argumentos:
 #tipo, tiempo, configuracion.txt
 def main():
-    if len(argv) != 5: raise Exception("Debe haber 4 argumentos en el sensor")
+    if len(argv) != 4: raise Exception("Debe haber 3 argumentos en el sensor")
 
     tipo_sensor = argv[1]
     tiempoT = argv[2]
     archivo_conf = argv[3]
-    puerto = argv[4]
 
     tipo_valido = tipo_sensor == "0" or "1" or "2"
     if not tipo_valido: raise Exception("El tipo del sensor no es valido. Debe ser => Temperatura: 0, PH: 1, Oxigeno: 2")
@@ -101,9 +100,8 @@ def main():
     if not tiempo_valido: raise Exception("El argumento de tiempo debe ser un numero")
     archivo_valido = archivo_conf.endswith(".txt")
     if not archivo_valido: raise Exception("El nombre del archivo no es valido. Debe ser de tipo .txt")
-    if not puerto.isnumeric: raise Exception("El puerto debe corresponder a un numero")
-
-    sensor = Sensor(tipo_sensor, tiempoT, archivo_conf, puerto)
+    
+    sensor = Sensor(tipo_sensor, tiempoT, archivo_conf)
 
 
 if __name__ == "__main__":
