@@ -16,10 +16,6 @@ def main():
     print(f"Socket de sub bound a tcp://*:{ro.PROXYINPORT}")
     socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"")
 
-    val = socket_sub.recv_string()
-    print(f"Vlaor recobido: {val}")
-    
-    print("Recibio al menos uno")
     while (True):
         val = socket_sub.recv_string()
         print(f"Vlaor recobido: {val}")
@@ -35,7 +31,6 @@ def main():
             socket_pub.send_string(qPH.pop())
             socket_pub.send_string(qOx.pop())
             
-        #socket_pub.send_string(val)
 
 if __name__ == "__main__":
     main()
