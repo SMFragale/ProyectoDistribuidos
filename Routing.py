@@ -1,6 +1,7 @@
 #Este archivo contiene las direcciones que se van a utilizar para cada parte del sistema
 
-SISTEMA_CALIDAD  = ""
+SISTEMA_CALIDAD  = "localhost"
+SISTEMA_CALIDADPORT = "5020"
 HEALTHCHECK = "localhost"
 
 HEALTHCHECKINPORT = "5011"

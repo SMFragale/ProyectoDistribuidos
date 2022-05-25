@@ -46,7 +46,12 @@ class Monitor:
         
         health = threading.Thread(target = self.healthCheck)
         health.start()
+        calidad = threading.Thread(target = self.sistemaCalidad)
+        calidad.start()
         self.correr()
+    
+    def sistemaCalidad(self):
+        pass
 
     #Recibe y envia los mensajes del healthcheck
     def healthCheck(self):
@@ -94,6 +99,21 @@ class Monitor:
             print(f"Mensjae recibido (Desde intermediario): {mensaje}")
 
     def agregarMedicion(self, fecha: str, medicion: float, timestamp: float):
+        context = zmq.Context()
+        socket_pub_sc = context.socket(zmq.PUB)
+    
+        if float(medicion) < 0:
+            socket_pub_sc.connect(f"tcp://{ro.SISTEMA_CALIDAD}:{ro.SISTEMA_CALIDADPORT}")
+            time.sleep(0.2)
+            print(f"Socket connected to tcp://*:{ro.SISTEMA_CALIDADPORT}")
+            socket_pub_sc.send_string(f"Alerta generada: valor inválido {dt.datetime.now()}, sensor de {settings.tipos_sensor.get(self.tipo_monitor)}")
+            return
+        elif float(medicion) < float(settings.rangos_parametros_calidad.get(self.tipo_monitor)[0]) or float(medicion) > float(settings.rangos_parametros_calidad.get(self.tipo_monitor)[1]):
+            socket_pub_sc.connect(f"tcp://{ro.SISTEMA_CALIDAD}:{ro.SISTEMA_CALIDADPORT}")
+            time.sleep(0.2)
+            print(f"Socket connected to tcp://*:{ro.SISTEMA_CALIDADPORT}")
+            socket_pub_sc.send_string(f"Alerta generada: valor fuera de rango {dt.datetime.now()}, sensor de {settings.tipos_sensor.get(self.tipo_monitor)}")
+        
         elapsedTime = time.time() - timestamp
         self.mediciones.append({"fecha" : fecha, "medicion" : medicion, "elapsedTime": elapsedTime})
         f = open(self.db_path, "w")
