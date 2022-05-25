@@ -97,7 +97,7 @@ def main():
 
     direccion = argv[2]
     if tipo_monitor != '0' and tipo_monitor !='1' and tipo_monitor !='2': raise Exception("El monitor debe corresponder a un tipo de sensor: 1. Temperatura, 2. PH, 3. Oxigeno")
-    monitor = Monitor(int(tipo_monitor))
+    monitor = Monitor(int(tipo_monitor), direccion)
 
 if __name__ == "__main__":
     main()
