@@ -52,7 +52,8 @@ class HealthCheck:
                     self.socket_pub.send_string(f"{id_send}-syncR")
             elif "pong" in mensaje:
                 monitor = mensaje.split("-")[1]
-                self.check_list.remove(monitor)
+                if monitor in self.check_list:
+                    self.check_list.remove(monitor)
             
             elif "db" in mensaje:
                 self.socket_pub.send_string(mensaje)

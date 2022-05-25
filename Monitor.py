@@ -38,7 +38,7 @@ class Monitor:
         
         self.tipo_monitor = tipo_monitor
         self.mediciones = []
-        self.db_path = f"monitor_db/monitor{self.tipo_monitor}.json"
+        self.db_path = f"monitor_db/monitor{self.id}.json"
        
         print("Enviando solicitud de conexion")
         time.sleep(1)
@@ -68,7 +68,7 @@ class Monitor:
             elif "db" in mensaje:
                 db = mensaje.split("-")[2]
                 self.mediciones = json.loads(db)
-                f = open(self.monitor_path, "w")
+                f = open(self.db_path, "w")
                 f.write(json.dumps(self.mediciones))
                 f.close()
 
