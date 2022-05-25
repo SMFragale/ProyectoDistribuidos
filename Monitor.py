@@ -42,7 +42,7 @@ class Monitor:
         print("Enviando solicitud de conexion")
         time.sleep(1)
         print("Solicitud enviada")
-        self.socket_pub.send_string(f"{self.id}-connect")
+        self.socket_pub.send_string(f"{self.id}_connect")
         
         health = threading.Thread(target = self.healthCheck)
         health.start()
@@ -54,18 +54,20 @@ class Monitor:
             mensaje: str = self.socket_sub.recv_string()
             print(mensaje)
             if "all" in mensaje:
-                self.socket_pub.send_string(f"pong-{self.id}")
+                self.socket_pub.send_string(f"pong_{self.id}")
             
             elif "syncR" in mensaje and f"{self.id}" in mensaje:
                 id_send: str = ""
                 if "r" in self.id:
                     id_send = self.id.replace("r", "")
                 else:
-                    id_send = f"{self.id}r"
-                self.socket_pub.send_string(f"{id_send}-db-{json.dumps(self.mediciones)}")
+                    id_send = f"r{self.id}"
+                self.socket_pub.send_string(f"{id_send}_db_{json.dumps(self.mediciones)}")
             
             elif "db" in mensaje:
-                db = mensaje.split("-")[2]
+                db = mensaje.split("_")[2]
+                print("DB: ")
+                print(db)
                 self.mediciones = json.loads(db)
                 f = open(self.db_path, "w")
                 f.write(json.dumps(self.mediciones))

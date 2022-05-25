@@ -27,7 +27,7 @@ class HealthCheck:
     def ping(self):
         while True:
             if self.monitores:
-                self.socket_pub.send_string("all-ping")
+                self.socket_pub.send_string("all_ping")
                 for monitor in self.monitores:
                     if monitor not in self.check_list:
                         self.check_list.append(monitor)
@@ -39,7 +39,7 @@ class HealthCheck:
             mensaje: str = self.socket_sub.recv_string()
             print(mensaje)
             if "connect" in mensaje:
-                id = mensaje.split("-")[0]
+                id = mensaje.split("_")[0]
                 if id not in self.monitores:
                     self.monitores.append(id)
                 #Si se encuentra en el checklist, significa que el monitor se esta reconectando
@@ -48,10 +48,10 @@ class HealthCheck:
                     if "r" in id:
                         id_send = id.replace("r", "")
                     else:
-                        id_send = f"{id}r"
-                    self.socket_pub.send_string(f"{id_send}-syncR")
+                        id_send = f"r{id}"
+                    self.socket_pub.send_string(f"{id_send}_syncR")
             elif "pong" in mensaje:
-                monitor = mensaje.split("-")[1]
+                monitor = mensaje.split("_")[1]
                 if monitor in self.check_list:
                     self.check_list.remove(monitor)
             
