@@ -5,6 +5,7 @@ import random
 import threading
 import settings
 import Routing as ro
+import time
 
 class Sensor:
 
@@ -58,7 +59,8 @@ class Sensor:
                     print(f"{settings.Colores.MAL_RANGO}{valor}{settings.Colores.FIN}")
                 else:
                     print(f"{settings.Colores.ERROR}{valor}{settings.Colores.FIN}")
-                socket.send_string(settings.tipos_sensor.get(self.tipo_sensor) + "=" + str(valor))
+                timestamp = time.time();
+                socket.send_string(settings.tipos_sensor.get(self.tipo_sensor) + "=" + str(valor)+"_"+str(timestamp))
                 sleep(self.tiempoT)
         
     def options(self):
