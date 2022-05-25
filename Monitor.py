@@ -32,9 +32,8 @@ class Monitor:
         
 
         #Recibe mensajes de ping o de 
-        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"")
-        #self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{self.id}")
-        #self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"all")
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{self.id}")
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"all")
         
         self.tipo_monitor = tipo_monitor
         self.mediciones = []
