@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from nis import cat
 from warnings import catch_warnings
 import zmq
@@ -99,3 +100,22 @@ class HealthCheck:
 
 
 monitor = HealthCheck()
+=======
+import zmq
+import Routing as ro
+import settings
+import time
+
+def main():
+    print(type(time.time()))
+    context = zmq.Context()
+    socket_sub: zmq.Socket = context.socket(zmq.SUB)
+    socket_pub: zmq.Socket = context.socket(zmq.PUB)
+    socket_sub.bind(f"tcp://*:{ro.HCINPORT}")
+    socket_pub.bind(f"tcp://*:{ro.HCOUTPORT}")
+
+
+
+if __name__ == "__main__":
+    main()
+>>>>>>> 6a68eff5566f6b6e399ff1ac835cb5d42e3b2985
