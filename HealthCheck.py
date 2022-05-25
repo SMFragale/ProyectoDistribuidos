@@ -14,10 +14,13 @@ class HealthCheck:
         self.socket_sub = self.context.socket(zmq.SUB)
         self.socket_sub.bind(f"tcp://*:{rt.HEALTHCHECKINPORT}")
         self.socket_pub.bind(f"tcp://*:{rt.HEALTHCHECKOUTPORT}")
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"")
+        self.socket_sub.setsockopt
 
         self.monitores = []
         self.check_list = []
         pings = threading.Thread(target=self.ping)
+
         pings.start()
         self.correr()
 
@@ -32,6 +35,7 @@ class HealthCheck:
 
     def correr(self):
         while True:
+            print("Esperando mensaje")
             mensaje: str = self.socket_sub.recv_string()
             print(mensaje)
             if "connect" in mensaje:

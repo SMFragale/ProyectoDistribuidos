@@ -20,6 +20,7 @@ class Monitor:
     socket_sub: zmq.Socket
     es_replica: bool
 
+
     def __init__(self, tipo_monitor, id:str) -> None:
         self.es_replica = not id.isnumeric()
         self.context = zmq.Context()
@@ -28,6 +29,7 @@ class Monitor:
         self.socket_sub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKOUTPORT}")
         self.socket_pub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKINPORT}")
         self.id = id
+        
 
         #Recibe mensajes de ping o de 
         self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"")
@@ -38,8 +40,11 @@ class Monitor:
         self.mediciones = []
         self.db_path = f"monitor_db/monitor{self.tipo_monitor}.json"
        
+        print("Enviando solicitud de conexion")
+        time.sleep(1)
+        print("Solicitud enviada")
         self.socket_pub.send_string(f"{self.id}-connect")
-
+        
         health = threading.Thread(target = self.healthCheck)
         health.start()
         self.correr()
@@ -66,7 +71,6 @@ class Monitor:
                 f = open(self.monitor_path, "w")
                 f.write(json.dumps(self.mediciones))
                 f.close()
-        
 
     def correr(self):
         if exists(self.db_path):
