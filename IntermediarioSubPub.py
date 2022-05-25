@@ -18,7 +18,7 @@ def main():
 
     while (True):
         val = socket_sub.recv_string()
-        print(f"Vlaor recobido: {val}")
+        print(f"Valor recibido: {val}")
         if val.startswith(settings.tipos_sensor.get(0)):
             qTemp.append(val)
         elif val.startswith(settings.tipos_sensor.get(1)):

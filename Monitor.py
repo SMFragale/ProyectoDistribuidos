@@ -22,20 +22,22 @@ class Monitor:
 
     def __init__(self, tipo_monitor, id:str) -> None:
         self.es_replica = not id.isnumeric()
-        self.context = zmq.context()
-        self.socket_pub = zmq.Socket(zmq.PUB)
-        self.socket_sub = zmq.Socket(zmq.SUB)
-        self.socket_sub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKSUBPORT}")
-        self.socket_pub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKPUBPORT}")
+        self.context = zmq.Context()
+        self.socket_pub = self.context.socket(zmq.PUB)
+        self.socket_sub = self.context.socket(zmq.SUB)
+        self.socket_sub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKOUTPORT}")
+        self.socket_pub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKINPORT}")
+        self.id = id
 
         #Recibe mensajes de ping o de 
-        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{self.id}")
-        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"all")
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"")
+        #self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{self.id}")
+        #self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"all")
         
         self.tipo_monitor = tipo_monitor
         self.mediciones = []
         self.db_path = f"monitor_db/monitor{self.tipo_monitor}.json"
-        self.id = id
+       
         self.socket_pub.send_string(f"{self.id}-connect")
 
         health = threading.Thread(target = self.healthCheck)
@@ -46,11 +48,24 @@ class Monitor:
     def healthCheck(self):
         while True:
             mensaje: str = self.socket_sub.recv_string()
+            print(mensaje)
             if "all" in mensaje:
                 self.socket_pub.send_string(f"pong-{self.id}")
             
-            elif f"syncR" in mensaje and f"{self.id}" in mensaje:
-                self.socket_pub.send_string(f"{self.id}-db-{json.dumps(self.mediciones)}")
+            elif "syncR" in mensaje and f"{self.id}" in mensaje:
+                id_send: str = ""
+                if "r" in self.id:
+                    id_send = self.id.replace("r", "")
+                else:
+                    id_send = f"{self.id}r"
+                self.socket_pub.send_string(f"{id_send}-db-{json.dumps(self.mediciones)}")
+            
+            elif "db" in mensaje:
+                db = mensaje.split("-")[2]
+                self.mediciones = json.loads(db)
+                f = open(self.monitor_path, "w")
+                f.write(json.dumps(self.mediciones))
+                f.close()
         
 
     def correr(self):
