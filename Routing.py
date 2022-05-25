@@ -1,17 +1,10 @@
 #Este archivo contiene las direcciones que se van a utilizar para cada parte del sistema
 
 SISTEMA_CALIDAD  = ""
-HEALTHCHECKWAKE = ""
-HEALTHCHECK = ""
+HEALTHCHECK = "localhost"
 
-MONITOR1 = "localhost:5002"
-MONITOR1REP = "localhost:5003"
-
-MONITOR2 = "localhost:5004"
-MONITOR2REP = "localhost:5005"
-
-MONITOR3 = "localhost:5006"
-MONITOR3REP = "localhost:5007"
+HEALTHCHECKSUBPORT = "5011"
+HEALTHCHECKPUBPORT = "5012"
 
 PROXYINPORT = "5000"
 PROXYOUTPORT = "5001"

@@ -6,6 +6,7 @@ import datetime as dt
 from os.path import exists
 import json
 import time
+import threading
 
 import settings
 
@@ -14,15 +15,43 @@ class Monitor:
     tipo_monitor: int
     mediciones: list
     db_path: str
-    direccion: str
+    id: str
+    socket_pub: zmq.Socket
+    socket_sub: zmq.Socket
+    es_replica: bool
 
-    def __init__(self, tipo_monitor, direccion) -> None:
+    def __init__(self, tipo_monitor, id:str) -> None:
+        self.es_replica = not id.isnumeric()
+        self.context = zmq.context()
+        self.socket_pub = zmq.Socket(zmq.PUB)
+        self.socket_sub = zmq.Socket(zmq.SUB)
+        self.socket_sub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKSUBPORT}")
+        self.socket_pub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKPUBPORT}")
+
+        #Recibe mensajes de ping o de 
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"{self.id}")
+        self.socket_sub.setsockopt_string(zmq.SUBSCRIBE, f"all")
+        
         self.tipo_monitor = tipo_monitor
         self.mediciones = []
         self.db_path = f"monitor_db/monitor{self.tipo_monitor}.json"
-        self.direccion = direccion
-        self.wake()
-        self.healthPing()
+        self.id = id
+        self.socket_pub.send_string(f"{self.id}-connect")
+
+        health = threading.Thread(target = self.healthCheck)
+        health.run()
+        self.correr()
+
+    #Recibe y envia los mensajes del healthcheck
+    def healthCheck(self):
+        while True:
+            mensaje: str = self.socket_sub.recv_string()
+            if "all" in mensaje:
+                self.socket_pub.send_string(f"pong-{self.id}")
+            
+            elif f"syncR" in mensaje and f"{self.id}" in mensaje:
+                self.socket_pub.send_string(f"{self.id}-db-{json.dumps(self.mediciones)}")
+        
 
     def correr(self):
         if exists(self.db_path):
@@ -52,41 +81,7 @@ class Monitor:
         f.write(jsonw)
         f.close()
     
-    #Espera que el HealthCheck envie una solicitud de sync. Cuando la recibe, le envia al HealthCheck su base de datos
-    def syncREP(self):
-        context = zmq.Context()
-        socket = context.socket(zmq.REP)
-        socket.bind("tcp://*:5559")
-
-        while True:
-            message = socket.recv()
-            if message == "sync":
-                print("Se recibio una solicitud de sincronizacion")
-                socket.send_string(json.dumps(self.mediciones))
-
-    def verificarValor(self):
-        rangos_aceptables = settings.rangos_parametros_calidad.get(self.tipo_monitor)
     
-    #Se llama cuando el monitor comienza a funcionar. Si el monitor estaba caido, la idea es que se sincronice con su replica
-    def wake():
-        context = zmq.Context()
-        socket = context.socket(zmq.REQ)
-        socket.connect(f"tcp://{ro.HEALTHCHECKWAKE}")
-        print("Se inicia el monitor")
-        socket.send_string()
-
-
-    #Debe ejecutarse en un Hilo para no estorbar el principal
-    def healthPing(self):
-        context = zmq.Context()
-        socket = context.socket(zmq.REP)
-        socket.bind("tcp://*:5002")
-        print("inicia el checkeo de pings")
-        
-        while True:
-            ping = socket.recv()
-            print(f"recibio {ping}")
-            socket.send_string("Pong")
 
 
 def main():
@@ -95,9 +90,9 @@ def main():
     tipo_monitor = argv[1]
     if not tipo_monitor.isnumeric(): raise Exception("El tipo de monitor debe ser un numero")
 
-    direccion = argv[2]
+    id = argv[2]
     if tipo_monitor != '0' and tipo_monitor !='1' and tipo_monitor !='2': raise Exception("El monitor debe corresponder a un tipo de sensor: 1. Temperatura, 2. PH, 3. Oxigeno")
-    monitor = Monitor(int(tipo_monitor), direccion)
+    monitor = Monitor(int(tipo_monitor), id)
 
 if __name__ == "__main__":
     main()
