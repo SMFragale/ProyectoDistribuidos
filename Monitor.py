@@ -29,6 +29,8 @@ class Monitor:
         self.socket_sub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKOUTPORT}")
         self.socket_pub.connect(f"tcp://{ro.HEALTHCHECK}:{ro.HEALTHCHECKINPORT}")
         self.id = id
+        self.medidasCorrectas = 0
+        self.fallos = 0
         
 
         #Recibe mensajes de ping o de 
@@ -46,13 +48,8 @@ class Monitor:
         
         health = threading.Thread(target = self.healthCheck)
         health.start()
-        calidad = threading.Thread(target = self.sistemaCalidad)
-        calidad.start()
         self.correr()
     
-    def sistemaCalidad(self):
-        pass
-
     #Recibe y envia los mensajes del healthcheck
     def healthCheck(self):
         while True:
@@ -107,6 +104,7 @@ class Monitor:
             time.sleep(0.2)
             print(f"Socket connected to tcp://*:{ro.SISTEMA_CALIDADPORT}")
             socket_pub_sc.send_string(f"Alerta generada: valor inválido {dt.datetime.now()}, sensor de {settings.tipos_sensor.get(self.tipo_monitor)}")
+            self.fallos += 1
             return
         elif float(medicion) < float(settings.rangos_parametros_calidad.get(self.tipo_monitor)[0]) or float(medicion) > float(settings.rangos_parametros_calidad.get(self.tipo_monitor)[1]):
             socket_pub_sc.connect(f"tcp://{ro.SISTEMA_CALIDAD}:{ro.SISTEMA_CALIDADPORT}")
@@ -114,15 +112,18 @@ class Monitor:
             print(f"Socket connected to tcp://*:{ro.SISTEMA_CALIDADPORT}")
             socket_pub_sc.send_string(f"Alerta generada: valor fuera de rango {dt.datetime.now()}, sensor de {settings.tipos_sensor.get(self.tipo_monitor)}")
         
+        self.medidasCorrectas += 1
+        print(f"Porcentaje de fallos: {self.darPorcentajeFallos()}")
         elapsedTime = time.time() - timestamp
         self.mediciones.append({"fecha" : fecha, "medicion" : medicion, "elapsedTime": elapsedTime})
         f = open(self.db_path, "w")
         jsonw = json.dumps(self.mediciones)
         f.write(jsonw)
         f.close()
+        
+    def darPorcentajeFallos(self):
+        return round((self.fallos) / (self.fallos + self.medidasCorrectas), 2)
     
-    
-
 
 def main():
     if len(argv) != 3:
