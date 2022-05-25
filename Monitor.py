@@ -41,7 +41,7 @@ class Monitor:
         self.socket_pub.send_string(f"{self.id}-connect")
 
         health = threading.Thread(target = self.healthCheck)
-        health.run()
+        health.start()
         self.correr()
 
     #Recibe y envia los mensajes del healthcheck
@@ -86,12 +86,12 @@ class Monitor:
             mensaje = mensaje.replace(f"{settings.tipos_sensor.get(self.tipo_monitor)}=", "")
             mensaje_split = mensaje.split("_")
             self.agregarMedicion(str(dt.datetime.now()), mensaje_split[0], float(mensaje_split[1]))
-            print(f"Mensjae recibido: {mensaje}")
+            print(f"Mensjae recibido (Desde intermediario): {mensaje}")
 
     def agregarMedicion(self, fecha: str, medicion: float, timestamp: float):
         elapsedTime = time.time() - timestamp
         self.mediciones.append({"fecha" : fecha, "medicion" : medicion, "elapsedTime": elapsedTime})
-        f = open(self.monitor_path, "w")
+        f = open(self.db_path, "w")
         jsonw = json.dumps(self.mediciones)
         f.write(jsonw)
         f.close()
