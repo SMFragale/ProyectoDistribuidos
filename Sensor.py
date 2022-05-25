@@ -73,7 +73,7 @@ class Sensor:
                 print("El sensor continuara produciendo valores")
                 self.prendido = True
             elif command == "kill":
-                print("Se ha terminado la ejecucion")
+                print("Se ha terminado la ejecución")
                 self.running = False
 
     
