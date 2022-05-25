@@ -18,7 +18,7 @@ class HealthCheck:
         self.monitores = []
         self.check_list = []
         pings = threading.Thread(target=self.ping)
-        pings.run()
+        pings.start()
         self.correr()
 
     def ping(self):
